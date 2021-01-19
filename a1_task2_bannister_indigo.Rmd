@@ -1,5 +1,5 @@
 ---
-title: "Task 2"
+title: "ESM 244 Assignment 1 - Task 2"
 author: "Indigo Bannister"
 date: "1/19/2021"
 output: html_document
@@ -7,5 +7,84 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+# set up libraries
+library(tidyverse)
+library(here)
+library(janitor)
+library(ggfortify)
+
+```
+
+# Task 2: Principal components analysis (PCA)
+
+### Step 1: Read in data & Conduct PCA
+
+```{r}
+
+# Read in data from csv
+world_env_vars <- read_csv(here('data','world_env_vars.csv'))%>% 
+  clean_names()
+
+# Prep for pca by selecting vars of interest, dropping NAs and scaling, and conduct PCA
+world_env_pca <- world_env_vars %>% 
+  select(!country) %>% 
+  drop_na() %>% 
+  scale() %>% 
+  prcomp()
+
+# See results of pca
+world_env_pca$rotation
+
+# values that I considered narrowing by
+#### rain_wettest_month, rain_wettest_quart,isothermality, rain_mean_annual, temp_annual_range, temp_coldest_quart, temp_seasonality, temp_min_coldest_month
+
+
+# tried creating screeplot like allison's example code from lab 2, but ran into errors with
+screeplot(world_env_pca, type = 'lines')
+
+# Therefore created screeplot with this method from https://www.geo.fu-berlin.de/en/v/soga/Geodata-analysis/Principal-Component-Analysis/PCA-an-example/Principal-Component-Analysis/index.html 
+pca.var = world_env_pca$sdev^2
+pca.ve = pca.var/sum(pca.var)
+pca.ve
+
+plot(pca.ve,
+     xlab = "Principal Component",
+     ylab = "Proportion of Variance Explained", 
+     ylim = c(0,1), 
+     type = 'b',
+     main = 'Scree plot')
+
+plot(cumsum(pca.ve), 
+     xlab = "Principal Component", 
+     ylab = "Cumulative Proportion of\nVariance Explained", 
+     ylim = c(0,1),
+     type = 'b',
+     main = 'Scree plot')
+
+
+
+```
+
+### Step 2: Visualize results of PCA
+```{r}
+# Create a dataset that matches the one used in the pca to improve plots
+world_env_plot <- world_env_vars %>% 
+  drop_na(!country)
+
+# Plot biplot using autoplot with pca dataset
+autoplot(world_env_pca,
+         data = world_env_plot,
+         alpha = 0.25,
+         colour = 'blue',
+         loadings = TRUE,
+         loadings.label = TRUE,
+         loadings.colour = 'black',
+         loadings.label.colour = 'black',
+         loadings.label.vjust = -0.5) + 
+  theme_minimal()
+
+
+
 ```
 

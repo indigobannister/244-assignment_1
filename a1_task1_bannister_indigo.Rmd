@@ -1,5 +1,5 @@
 ---
-title: " ESM 244 Assignment 1 - Task 1"
+title: "ESM 244 Assignment 1 - Task 1"
 author: "Indigo Bannister"
 date: "1/17/2021"
 output: html_document
