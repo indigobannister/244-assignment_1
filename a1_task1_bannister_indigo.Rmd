@@ -1,11 +1,91 @@
 ---
-title: "Task 1"
+title: " ESM 244 Assignment 1 - Task 1"
 author: "Indigo Bannister"
 date: "1/17/2021"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+# set up libraries
+library(tidyverse)
+library(here)
+library(readxl)
+library(lubridate)
+library(patchwork)
+library(ggthemes)
+
 ```
+# Task 1: Data wrangling & visualization of Sierra amphibians
+
+### Step 1: Call in data
+
+```{r}
+# read in xlsx of data
+RAMU <- read_xlsx(here("data","sierra_amphibians.xlsx")) %>% 
+  filter(amphibian_species == 'RAMU') %>% 
+  mutate(survey_date = ymd(survey_date)) %>% 
+  mutate(survey_year = year(survey_date)) 
+
+```
+
+### Step 2: Create a graph of count of Rana muscosa by year, grouped by life stage
+```{r}
+# Filter, clean, and summarize data for analysis
+year_lifestage <- RAMU %>% 
+  filter(amphibian_life_stage != 'EggMass') %>% 
+  group_by(amphibian_life_stage, survey_year) %>% 
+  summarize(count = sum(amphibian_number))
+
+# create graph 
+graph_1 <- ggplot(data = year_lifestage, aes(x = survey_year, y = count, fill = amphibian_life_stage)) + 
+  geom_col() + 
+  labs(x = "Year",
+       y = "Number of frogs",
+       fill = "Life Stage") +
+    scale_x_continuous(expand = c(0, 0),
+                     breaks = seq(1995, 2002, by = 1)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_minimal() + 
+  coord_flip() +
+  scale_fill_tableau(palette = "Miller Stone", direction = -1) + 
+  theme(legend.position = c(0.8, 0.2))
+
+```
+
+### Step 3: Create a graph of frog counts observed in the top 5 lakes
+```{r}
+# Wrangle data for graph: filter initial dataset, select top 5 counts, and adjust naming for graph visual
+top5_lakes <- RAMU %>% 
+  filter(amphibian_life_stage != 'EggMass') %>% 
+  filter(amphibian_life_stage != 'Tadpole') %>% 
+  group_by(lake_id) %>% 
+  summarize(count = sum(amphibian_number)) %>% 
+  slice_max(order_by = count, n = 5) %>% 
+  mutate(lake_name = paste('Lake #',lake_id, sep = ' ')) %>% 
+  mutate(lake_name = fct_reorder(lake_name, count))
+
+# create graph of frog counts observed in top 5 lakes
+graph_2 <- ggplot(data = top5_lakes, aes(x = lake_name, y = count, fill = lake_name)) + 
+  geom_col() + 
+  labs(x = "Lake ID",
+       y = "Number of frogs")  +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_minimal() + 
+  coord_flip() +
+  scale_fill_tableau(palette = "Blue-Teal", type = "ordered-sequential", direction = 1) +
+  theme(legend.position = "none")
+  
+```
+
+### Step 4: Display both graphs together using patchwork()
+
+```{r}
+# Display graphs side by side and add figure caption
+graph_1 | graph_2
+```
+
+<font size="2"> ***Figure 1:*** *Mountain Yellow-Legged Frog (Rana muscosa) counts by year (separated by life stage) [right] and by lake for adults and subadults [left].* </font>
+
 
