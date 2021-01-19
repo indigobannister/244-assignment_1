@@ -1,12 +1,12 @@
 ---
-title: "Task 1"
+title: " ESM 244 Assignment 1 - Task 1"
 author: "Indigo Bannister"
 date: "1/17/2021"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 # set up libraries
 library(tidyverse)
@@ -14,7 +14,7 @@ library(here)
 library(readxl)
 library(lubridate)
 library(patchwork)
-
+library(ggthemes)
 
 ```
 # Task 1: Data wrangling & visualization of Sierra amphibians
@@ -39,7 +39,7 @@ year_lifestage <- RAMU %>%
   summarize(count = sum(amphibian_number))
 
 # create graph 
-ggplot(data = year_lifestage, aes(x = survey_year, y = count, fill = amphibian_life_stage)) + 
+graph_1 <- ggplot(data = year_lifestage, aes(x = survey_year, y = count, fill = amphibian_life_stage)) + 
   geom_col() + 
   labs(x = "Year",
        y = "Number of frogs",
@@ -48,7 +48,9 @@ ggplot(data = year_lifestage, aes(x = survey_year, y = count, fill = amphibian_l
                      breaks = seq(1995, 2002, by = 1)) +
   scale_y_continuous(expand = c(0, 0)) +
   theme_minimal() + 
-  coord_flip()
+  coord_flip() +
+  scale_fill_tableau(palette = "Miller Stone", direction = -1) + 
+  theme(legend.position = c(0.8, 0.2))
 
 ```
 
@@ -65,17 +67,25 @@ top5_lakes <- RAMU %>%
   mutate(lake_name = fct_reorder(lake_name, count))
 
 # create graph of frog counts observed in top 5 lakes
+graph_2 <- ggplot(data = top5_lakes, aes(x = lake_name, y = count, fill = lake_name)) + 
+  geom_col() + 
+  labs(x = "Lake ID",
+       y = "Number of frogs")  +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_minimal() + 
+  coord_flip() +
+  scale_fill_tableau(palette = "Blue-Teal", type = "ordered-sequential", direction = 1) +
+  theme(legend.position = "none")
   
 ```
 
+### Step 4: Display both graphs together using patchwork()
+
+```{r}
+# Display graphs side by side and add figure caption
+graph_1 | graph_2
+```
+
+<font size="2"> ***Figure 1:*** *Mountain Yellow-Legged Frog (Rana muscosa) counts by year (separated by life stage) [right] and by lake for adults and subadults [left].* </font>
 
 
-A column graph containing total counts (over all years of the study) of combined adult and subadult endangered mountain yellow-legged frogs (Rana muscosa) observed in the 5 lakes with the greatest total observed counts. In other words, this graph will have at least 5 columns (OK to have more if there are ties - thanks Michelle Shteyn), with Lake ID (these aren’t specified in the dataset for confidentiality) as the categorical label on one axis, and total yellow-legged frog counts (adult + subadult counts) in the dataset on the other axis. Make sure they’re in high-to-low or low-to-high order by total yellow-legged frog counts. You should exclude tadpoles for this graph. Note: Consider reformatting the lake ID from just a number to a label like “Lake 10025”), then use fct_reorder to convert it to an ordered factor.
-
-Combine your two graphs into a single compound figure using the {patchwork} package. Add a finalized figure caption that appears below the compound figure in your knitted html. Note: You might realize once you combine your graphs into a single compound figure, you need to update the formatting (e.g. move legends or instead directly label, etc.). You should customize as necessary to make it a professional final output.
-
-For Task 1, your knitted html should show: 
-
-Your organized code, with clear subsections and any useful descriptive text / annotation (e.g. if you wanted to highlight this as a code example for a prospective employer)
-Your finalized compound figure, with a figure caption
-Make sure to suppress any messages & warnings
